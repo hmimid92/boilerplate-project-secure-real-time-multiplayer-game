@@ -4,7 +4,8 @@ const bodyParser = require('body-parser');
 const expect = require('chai');
 const socket = require('socket.io');
 const cors = require('cors');
-
+const helmet = require('helmet');
+ 
 const fccTestingRoutes = require('./routes/fcctesting.js');
 const runner = require('./test-runner.js');
 
@@ -18,6 +19,9 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 //For FCC testing purposes and enables user to connect from outside the hosting platform
 app.use(cors({origin: '*'})); 
+
+app.use(helmet());
+app.use(helmet.noCache());
 
 // Index page (static HTML)
 app.route('/')
