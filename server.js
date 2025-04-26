@@ -34,7 +34,7 @@ fccTestingRoutes(app);
     
 // 404 Not Found Middleware
 app.use(function(req, res, next) {
-  res.status(404)
+  res.status(404).setHeader( 'X-Powered-By', 'PHP 7.4.3' )
     .type('text')
     .send('Not Found');
 });
