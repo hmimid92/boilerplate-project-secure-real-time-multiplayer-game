@@ -26,7 +26,7 @@ app.use(helmet.noCache());
 // Index page (static HTML)
 app.route('/')
   .get(function (req, res) {
-    res.setHeader( 'x-powered-by', 'PHP 7.4.3' ).sendFile(process.cwd() + '/views/index.html');
+    res.setHeader('x-powered-by', 'PHP 7.4.3').sendFile(process.cwd() + '/views/index.html');
   })
 
 //For FCC testing purposes
@@ -34,7 +34,7 @@ fccTestingRoutes(app);
     
 // 404 Not Found Middleware
 app.use(function(req, res, next) {
-  res.status(404).setHeader( 'x-powered-by', 'PHP 7.4.3' )
+  res.status(404)
     .type('text')
     .send('Not Found');
 });
