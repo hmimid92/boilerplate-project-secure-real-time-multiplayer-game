@@ -5,6 +5,7 @@ const expect = require('chai');
 const socket = require('socket.io');
 const cors = require('cors');
 const helmet = require('helmet');
+const noCache = require('nocache')
  
 const fccTestingRoutes = require('./routes/fcctesting.js');
 const runner = require('./test-runner.js');
@@ -21,12 +22,13 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors({origin: '*'})); 
 
 app.use(helmet());
-app.use(helmet.noCache());
+app.use(noCache());
 // app.disable("x-powered-by");
 // Index page (static HTML)
 app.route('/')
   .get(function (req, res) {
-    res.setHeader('x-powered-by', 'PHP 7.4.3').sendFile(process.cwd() + '/views/index.html');
+    res.setHeader('x-powered-by', 'PHP 7.4.3')
+       .sendFile(process.cwd() + '/views/index.html');
   })
 
 //For FCC testing purposes
