@@ -20,14 +20,13 @@ app.use(bodyParser.urlencoded({ extended: true }));
 //For FCC testing purposes and enables user to connect from outside the hosting platform
 app.use(cors({origin: '*'})); 
 
-app.use(helmet());
-app.use(helmet.noCache());
+// app.use(helmet());
+// app.use(helmet.noCache());
 // app.disable("x-powered-by");
 // Index page (static HTML)
 app.route('/')
   .get(function (req, res) {
-    res.setHeader('x-powered-by', 'PHP 7.4.3')
-       .sendFile(process.cwd() + '/views/index.html');
+    res.sendFile(process.cwd() + '/views/index.html');
   })
 
 //For FCC testing purposes
