@@ -5,7 +5,6 @@ const expect = require('chai');
 const socket = require('socket.io');
 const cors = require('cors');
 const helmet = require('helmet');
-const noCache = require('nocache')
  
 const fccTestingRoutes = require('./routes/fcctesting.js');
 const runner = require('./test-runner.js');
@@ -22,7 +21,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors({origin: '*'})); 
 
 app.use(helmet());
-app.use(noCache());
+app.use(helmet.noCache());
 // app.disable("x-powered-by");
 // Index page (static HTML)
 app.route('/')
