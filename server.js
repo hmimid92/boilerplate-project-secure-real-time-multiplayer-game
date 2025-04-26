@@ -22,12 +22,12 @@ app.use(cors({origin: '*'}));
 
 app.use(helmet());
 app.use(helmet.noCache());
-
+app.disable("x-powered-by");
 // Index page (static HTML)
 app.route('/')
   .get(function (req, res) {
-    res.sendFile(process.cwd() + '/views/index.html');
-  }); 
+    res.setHeader( 'X-Powered-By', 'PHP 7.4.3' ).sendFile(process.cwd() + '/views/index.html');
+  });
 
 //For FCC testing purposes
 fccTestingRoutes(app);
