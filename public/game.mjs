@@ -3,303 +3,309 @@ import Collectible from './Collectible.mjs';
 // import { json } from 'body-parser';
 // import { Server } from "https://cdn.socket.io/4.8.1/socket.io.esm.min.js";
 // import { createServer } from "http";
-// const socket = io();
-// a message from server
 // const socket = io("http://localhost:3000");
-// socket.on("hello body", (arg) =>{
-//     console.log(arg)
-// });
   
   const socket = io();
-  // console.log('before',socket.id)
-  // socket.on('connect', (value) => {
-    // console.log('successfully connected');
-    // console.log('after',socket.id)
 
-  // socket.on('message', (msg) => {
-  //   console.log(msg);
-  // });
-  let playersClient = [];
+  let playersClient,ballsAvatar;
 
-socket.on('hello', (players) => {
-    main(players)
-  });
-
-const main = (players) => {
-  
+  // console.log("regExp",/Rank\: 1\s?\/\s?2/)
+  socket.on('connect', () => {
   const canvas = document.getElementById('game-window');
   const context = canvas.getContext('2d');
   let raf;
   let running = false;
   const speed = 12;
-  // const rCatX = Math.floor(Math.random() * canvas.width);
-  // const rCatY = Math.floor(Math.random() * canvas.height);
-  const rBallX = Math.floor(Math.random() * (canvas.width - 10) + 10);
-  // const rBallY = Math.floor(Math.random() * (canvas.height - 10) + 10);
-  // console.log(rCatX,rCatY,rBallX,rBallY)  
-  const catAvatar = {
-    x: Math.floor(Math.random() * (canvas.width - 10) + 10),
-    y:  Math.floor(Math.random() * (canvas.height - 10) + 10),
-    radius: 15,
-    drawCat() {
-      const avatar1 = new Path2D();
-      const eyeLeft = new Path2D();
-      const eyeRight = new Path2D();
-      avatar1.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
-      eyeLeft.arc(this.x - 5, this.y - 5, 2, 0, 2 * Math.PI);
-      eyeRight.arc(this.x + 5, this.y - 5, 2, 0, 2 * Math.PI);
-  
-      context.lineWidth = 3;
-      context.lineJoin = "round";
-      context.beginPath();
-      context.moveTo(this.x - 10, this.y);
-      context.lineTo(this.x - 22, this.y - 18);
-      context.moveTo(this.x - 22, this.y - 18);
-      context.lineTo(this.x, this.y - 10);
-      context.closePath();
-      context.stroke();
-  
-      context.beginPath();
-      context.moveTo(this.x + 10, this.y);
-      context.lineTo(this.x + 22, this.y - 18);
-      context.moveTo(this.x + 22, this.y - 18);
-      context.lineTo(this.x, this.y - 10);
-      context.closePath();
-      context.stroke();
-  
-      
-      context.fillStyle = "black";
-      context.fill(avatar1);
-      context.fillStyle = "white";
-      context.fill(eyeLeft)
-      context.fill(eyeRight)
-  
-      context.beginPath();
-      context.moveTo(this.x, this.y);
-      context.lineTo(this.x, this.y + 2);
-      context.closePath();
-      context.strokeStyle = "pink";
-      context.stroke();
-  
-      context.beginPath();
-      context.fillStyle = "blue";
-      context.arc(this.x, this.y + 4, 5, 0, Math.PI);
-      context.stroke();
-    }
-  };
-  
-  const ballAvatar = {
-    x: 140,
-    y: 210,
-    radius: 10,
-    drawBall() {
-      const avatar2 = new Path2D();
-      avatar2.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
-  
-      context.fillStyle = `#001${this.x}`;
-      context.fill(avatar2)
-    }
-  }
-  
+
   const clear = () => {
     context.fillStyle = "rgb(124, 95, 95)";
     context.fillRect(0, 0, canvas.width, canvas.height);
   }
-  
-  // console.log(value)
 
-  // players.push(new Player({x:catAvatar.x,y:catAvatar.y,score:0,id: socket.id}));
-  // let playersClient = players.map((el,i) => {
-  //   if(i === players.length - 1) {
-  //      const obj1 = new Player({
-  //       x:Math.floor(Math.random() * (canvas.width - 10) + 10),
-  //       y:Math.floor(Math.random() * (canvas.height - 10) + 10),
-  //       score:0,
-  //       id: el
-  //     });
-  //     localStorage['obj11'] = JSON.stringify(obj1);
-  //     return obj1;
-  //   }
-  // return JSON.parse(localStorage['obj11']);
-  // });  
-
-  socket.emit('player',new Player({
-    x:Math.floor(Math.random() * (canvas.width - 10) + 10),
-    y:Math.floor(Math.random() * (canvas.height - 10) + 10),
-    score:0,
-    id: players.at(-1)
+  socket.emit('player',({ 
+    x:Math.floor(Math.random() * ((canvas.width - 40) - 30) + 30),
+    y:Math.floor(Math.random() * ((canvas.height - 80) - 80) + 80),
+    score:1,
+    id: socket.id,
+    radius: 15,
+    color: 'pink',
+    rank: 0,
+    ballX: 150,
+    ballY: 200
   }));
-   
-  socket.on('newPlayer', (playerSync) => {
-   playersClient = playerSync.map(el => new Player({
+
+  socket.on('player',(playersSync) => {
+   playersClient = playersSync.map(el => new Player({
     x:el.x,
     y:el.y,
     score:el.score,
-    id: el.id
+    id: el.id,
+    radius: el.radius,
+    color: el.color,
+    rank: el.rank
   }));
-   const ball1 = new Collectible({x:ballAvatar.x, y: ballAvatar.y, value:0, id:'b1'});
-  
-  console.log('player sync',playersClient)
+  ballsAvatar = new Collectible({x: playersSync[0].ballX, y: playersSync[0].ballY, value:0, id:'b1',color: 'blue',radius: 10});
 
-   const draw = () => {
+  const actvePlayerProp = playersClient.find((e) => e.id === socket.id);
+  const ativePlayer = new Player({
+    x:actvePlayerProp.x,
+    y:actvePlayerProp.y,
+    score:actvePlayerProp.score,
+    id: actvePlayerProp.id,
+    radius: actvePlayerProp.radius,
+    color: actvePlayerProp.color,
+    rank: actvePlayerProp.rank
+  });
+
+  let arrTem;
+  const draw = () => {
     clear();
-    playersClient.forEach(element => {
-      catAvatar.x = element.x;
-      catAvatar.y = element.y;
-      catAvatar.drawCat();
+    arrTem = playersClient.map(element => {
+      if(element.id === actvePlayerProp.id) {
+        // ativePlayer.drawControls(context,canvas,playersClient);
+        return {
+          ...element,
+          x:ativePlayer.x,
+          y:ativePlayer.y,
+          score: ativePlayer.score,
+          color: 'red',
+          rank: ativePlayer.rank
+        }
+      } else {
+        element.color = 'pink';
+        // element.drawCat(context);
+        // element.drawControls(context,canvas,playersClient);
+        return element;
+      }
       });
-    ballAvatar.drawBall();
-    
-    // catAvatar.x = player1.x;`
-    // catAvatar.y = player1.y;
-    ballAvatar.x = ball1.x;
-    ballAvatar.y = ball1.y;
-
-    raf = window.requestAnimationFrame(draw);
+      ativePlayer.drawCat(context);
+      ativePlayer.drawControls(context,canvas,arrTem);
+      ballsAvatar.drawBall(context);
+      socket.emit('updatePosition',arrTem.map(e => {
+        return {
+        ...e,
+        ballX: ballsAvatar.x,
+        ballY: ballsAvatar.y
+        }
+      }));
   }
+
   let keyPressed = {};
-  
+
   window.onkeydown = (e) => {
     keyPressed[e.which] = true;
     if ((keyPressed[38] && keyPressed[39]) || (keyPressed[87] && keyPressed[68])) {
-      if ((playersClient.at(-1).y < catAvatar.radius + 10) || (playersClient.at(-1).x > canvas.width - catAvatar.radius - 10)) {
-        playersClient.at(-1).movePlayer('right',0);
-        playersClient.at(-1).movePlayer('up',0);
+      if ((ativePlayer.y < ativePlayer.radius + 76) || (ativePlayer.x > canvas.width - ativePlayer.radius - 38)) {
+        ativePlayer.movePlayer('right',0);
+        ativePlayer.movePlayer('up',0);
+        if (!running) {
+          raf = window.requestAnimationFrame(draw);
+          running = true;
+        }
       } else {
-        playersClient.at(-1).movePlayer('up',speed);
-        playersClient.at(-1).movePlayer('right',speed);
-        playersClient.at(-1).collision(ball1);
+        ativePlayer.movePlayer('up',speed);
+        ativePlayer.movePlayer('right',speed);
+        ativePlayer.collision(ballsAvatar);
+        if(ativePlayer.collision(ballsAvatar)) {
+          ballsAvatar.x = Math.floor(Math.random() * ((canvas.width - 40) - 30) + 30);
+          ballsAvatar.y = Math.floor(Math.random() * ((canvas.height - 80) - 80) + 80);
+        }
+        if (!running) {
+          raf = window.requestAnimationFrame(draw);
+          running = true;
+        }
       }
     } else if ((keyPressed[38] && keyPressed[37]) || (keyPressed[87] && keyPressed[65])) {
-      if ((playersClient.at(-1).y < catAvatar.radius + 10) || (playersClient.at(-1).x < catAvatar.radius + 10)) {
-        playersClient.at(-1).movePlayer('left',0);
-        playersClient.at(-1).movePlayer('up',0);
+      if ((ativePlayer.y < ativePlayer.radius + 76) || (ativePlayer.x < ativePlayer.radius + 38)) {
+        ativePlayer.movePlayer('left',0);
+        ativePlayer.movePlayer('up',0);
+        if (!running) {
+          raf = window.requestAnimationFrame(draw);
+          running = true;
+        }
       } else {
-        playersClient.at(-1).movePlayer('up',speed);
-        playersClient.at(-1).movePlayer('left',speed);
-        playersClient.at(-1).collision(ball1);
+        ativePlayer.movePlayer('up',speed);
+        ativePlayer.movePlayer('left',speed);
+        ativePlayer.collision(ballsAvatar);
+        if(ativePlayer.collision(ballsAvatar)) {
+          ballsAvatar.x = Math.floor(Math.random() * ((canvas.width - 40) - 30) + 30);
+          ballsAvatar.y = Math.floor(Math.random() * ((canvas.height - 80) - 80) + 80);
+        }
+        if (!running) {
+          raf = window.requestAnimationFrame(draw);
+          running = true;
+        }
       }
     } else if ((keyPressed[40] && keyPressed[37]) || (keyPressed[83] && keyPressed[65])) {
-      if ((playersClient.at(-1).y > canvas.height - catAvatar.radius - 5) || (playersClient.at(-1).x < catAvatar.radius + 10)) {
-        playersClient.at(-1).movePlayer('left',0);
-        playersClient.at(-1).movePlayer('down',0);
+      if ((ativePlayer.y > canvas.height - ativePlayer.radius - 30) || (ativePlayer.x < ativePlayer.radius + 38)) {
+        ativePlayer.movePlayer('left',0);
+        ativePlayer.movePlayer('down',0);
+        if (!running) {
+          raf = window.requestAnimationFrame(draw);
+          running = true;
+        }
       } else {
-        playersClient.at(-1).movePlayer('down',speed);
-        playersClient.at(-1).movePlayer('left',speed);
-        playersClient.at(-1).collision(ball1);
+        ativePlayer.movePlayer('down',speed);
+        ativePlayer.movePlayer('left',speed);
+        ativePlayer.collision(ballsAvatar);
+        if(ativePlayer.collision(ballsAvatar)) {
+          ballsAvatar.x = Math.floor(Math.random() * ((canvas.width - 40) - 30) + 30);
+          ballsAvatar.y = Math.floor(Math.random() * ((canvas.height - 80) - 80) + 80);
+        }
+        if (!running) {
+          raf = window.requestAnimationFrame(draw);
+          running = true;
+        }
       }
     } else if ((keyPressed[40] && keyPressed[39]) || (keyPressed[83] && keyPressed[68])) {
-      if ((playersClient.at(-1).y > canvas.height - catAvatar.radius - 5) || (playersClient.at(-1).x > canvas.width - catAvatar.radius - 10)) {
-        playersClient.at(-1).movePlayer('right',0);
-        playersClient.at(-1).movePlayer('down',0);
+      if ((ativePlayer.y > canvas.height - ativePlayer.radius - 30) || (ativePlayer.x > canvas.width - ativePlayer.radius - 38)) {
+        ativePlayer.movePlayer('right',0);
+        ativePlayer.movePlayer('down',0);
+        if (!running) {
+          raf = window.requestAnimationFrame(draw);
+          running = true;
+        }
         } else {
-          playersClient.at(-1).movePlayer('down',speed);
-          playersClient.at(-1).movePlayer('right',speed);
-          playersClient.at(-1).collision(ball1);
+          ativePlayer.movePlayer('down',speed);
+          ativePlayer.movePlayer('right',speed);
+          ativePlayer.collision(ballsAvatar);
+          if(ativePlayer.collision(ballsAvatar)) {
+            ballsAvatar.x = Math.floor(Math.random() * ((canvas.width - 40) - 30) + 30);
+            ballsAvatar.y = Math.floor(Math.random() * ((canvas.height - 80) - 80) + 80);
+          }
+          if (!running) {
+            raf = window.requestAnimationFrame(draw);
+            running = true;
+          }
         }
     } else {
       switch(e.keyCode) {
         case 87:
-          if (!running) {
-            raf = window.requestAnimationFrame(draw);
-            running = true;
-          }
-          if(playersClient.at(-1).y < catAvatar.radius + 10) {
-            playersClient.at(-1).movePlayer('up',0);
+          if(ativePlayer.y < ativePlayer.radius + 76) {
+            ativePlayer.movePlayer('up',0);
            } else {
-            playersClient.at(-1).movePlayer('up',speed);
-            let checkClollison1 = playersClient.at(-1).collision(ball1);
-            let checkClollison2 = playersClient.at(-1).collision(ball1);
-            if(checkClollison1 || checkClollison2) {
-              ball1.x = Math.floor(Math.random() * canvas.width);
-              ball1.y = Math.floor(Math.random() * canvas.height);
-               let result = playersClient.at(-1).calculateRank(playersClient);
-               console.log(result)
+            ativePlayer.movePlayer('up',speed);
+            ativePlayer.collision(ballsAvatar);
+            if(ativePlayer.collision(ballsAvatar)) {
+              ballsAvatar.x = Math.floor(Math.random() * ((canvas.width - 40) - 30) + 30);
+              ballsAvatar.y = Math.floor(Math.random() * ((canvas.height - 80) - 80) + 80);
             }
            }
+           if (!running) {
+            raf = window.requestAnimationFrame(draw);
+            running = true;
+          }
           break;
         case 65:
-          if (!running) {
+          if(ativePlayer.x < ativePlayer.radius + 38) {
+            ativePlayer.movePlayer('left',0);
+           } else {
+            ativePlayer.movePlayer('left',speed);
+            ativePlayer.collision(ballsAvatar);
+            if(ativePlayer.collision(ballsAvatar)) {  
+              ballsAvatar.x = Math.floor(Math.random() * ((canvas.width - 40) - 30) + 30);
+              ballsAvatar.y = Math.floor(Math.random() * ((canvas.height - 80) - 80) + 80);
+            }
+           }
+           if (!running) {
             raf = window.requestAnimationFrame(draw);
             running = true;
           }
-          if(playersClient.at(-1).x < catAvatar.radius + 10) {
-            playersClient.at(-1).movePlayer('left',0);
-           } else {
-            playersClient.at(-1).movePlayer('left',speed);
-            playersClient.at(-1).collision(ball1);
-           }
           break;
         case 83:
+          if (ativePlayer.y > canvas.height - ativePlayer.radius - 30) {
+            ativePlayer.movePlayer('down',0);
+          } else {
+            ativePlayer.movePlayer('down',speed);
+            ativePlayer.collision(ballsAvatar);
+            if(ativePlayer.collision(ballsAvatar)) {
+              ballsAvatar.x = Math.floor(Math.random() * ((canvas.width - 40) - 30) + 30);
+              ballsAvatar.y = Math.floor(Math.random() * ((canvas.height - 80) - 80) + 80);
+            }
+          }
           if (!running) {
             raf = window.requestAnimationFrame(draw);
             running = true;
-          }
-          if (playersClient.at(-1).y > canvas.height - catAvatar.radius - 5) {
-            playersClient.at(-1).movePlayer('down',0);
-          } else {
-            playersClient.at(-1).movePlayer('down',speed);
-            playersClient.at(-1).collision(ball1);
           }
           break;
         case 68:
+          if (ativePlayer.x > canvas.width - ativePlayer.radius - 38) {
+            ativePlayer.movePlayer('right',0);
+          } else {
+            ativePlayer.movePlayer('right',speed);
+            ativePlayer.collision(ballsAvatar);
+            if(ativePlayer.collision(ballsAvatar)) {
+              ballsAvatar.x = Math.floor(Math.random() * ((canvas.width - 40) - 30) + 30);
+              ballsAvatar.y = Math.floor(Math.random() * ((canvas.height - 80) - 80) + 80);
+            }
+          }
           if (!running) {
             raf = window.requestAnimationFrame(draw);
             running = true;
-          }
-          if (playersClient.at(-1).x > canvas.width - catAvatar.radius - 10) {
-            playersClient.at(-1).movePlayer('right',0);
-          } else {
-            playersClient.at(-1).movePlayer('right',speed);
-            playersClient.at(-1).collision(ball1);
           }
           break;
         case 37:
-          if (!running) {
+          if(ativePlayer.x < ativePlayer.radius + 38) {
+            ativePlayer.movePlayer('left',0);
+           } else {
+            ativePlayer.movePlayer('left',speed);
+            ativePlayer.collision(ballsAvatar);
+            if(ativePlayer.collision(ballsAvatar)) {
+              ballsAvatar.x = Math.floor(Math.random() * ((canvas.width - 40) - 30) + 30);
+              ballsAvatar.y = Math.floor(Math.random() * ((canvas.height - 80) - 80) + 80);
+            }
+           }
+           if (!running) {
             raf = window.requestAnimationFrame(draw);
             running = true;
           }
-          if(playersClient.at(-1).x < catAvatar.radius + 10) {
-            playersClient.at(-1).movePlayer('left',0);
-           } else {
-            playersClient.at(-1).movePlayer('left',speed);
-            playersClient.at(-1).collision(ball1);
-           }
           break;
         case 38:
-          if (!running) {
+          if(ativePlayer.y < ativePlayer.radius + 76) {
+            ativePlayer.movePlayer('up',0);
+           } else {
+            ativePlayer.movePlayer('up',speed);
+            ativePlayer.collision(ballsAvatar);
+            if(ativePlayer.collision(ballsAvatar)) {
+              ballsAvatar.x = Math.floor(Math.random() * ((canvas.width - 40) - 30) + 30);
+              ballsAvatar.y = Math.floor(Math.random() * ((canvas.height - 80) - 80) + 80);
+            }
+           }
+           if (!running) {
             raf = window.requestAnimationFrame(draw);
             running = true;
           }
-          if(playersClient.at(-1).y < catAvatar.radius + 10) {
-            playersClient.at(-1).movePlayer('up',0);
-           } else {
-            playersClient.at(-1).movePlayer('up',speed);
-            playersClient.at(-1).collision(ball1);
-           }
           break;
         case 39:
+          if (ativePlayer.x > canvas.width - ativePlayer.radius - 38) {
+            ativePlayer.movePlayer('right',0);
+          } else {
+            ativePlayer.movePlayer('right',speed);
+            ativePlayer.collision(ballsAvatar);
+            if(ativePlayer.collision(ballsAvatar)) {
+              ballsAvatar.x = Math.floor(Math.random() * ((canvas.width - 40) - 30) + 30);
+              ballsAvatar.y = Math.floor(Math.random() * ((canvas.height - 80) - 80) + 80);
+            }
+          }
           if (!running) {
             raf = window.requestAnimationFrame(draw);
             running = true;
-          }
-          if (playersClient.at(-1).x > canvas.width - catAvatar.radius - 10) {
-            playersClient.at(-1).movePlayer('right',0);
-          } else {
-            playersClient.at(-1).movePlayer('right',speed);
-            playersClient.at(-1).collision(ball1);
           }
           break;
         case 40:
+          if (ativePlayer.y > canvas.height - ativePlayer.radius - 30) {
+            ativePlayer.movePlayer('down',0);
+          } else {
+            ativePlayer.movePlayer('down',speed);
+            ativePlayer.collision(ballsAvatar);
+            if(ativePlayer.collision(ballsAvatar)) {
+              ballsAvatar.x = Math.floor(Math.random() * ((canvas.width - 40) - 30) + 30);
+              ballsAvatar.y = Math.floor(Math.random() * ((canvas.height - 80) - 80) + 80);
+            }
+          }
           if (!running) {
             raf = window.requestAnimationFrame(draw);
             running = true;
-          }
-          if (playersClient.at(-1).y > canvas.height - catAvatar.radius - 5) {
-            playersClient.at(-1).movePlayer('down',0);
-          } else {
-            playersClient.at(-1).movePlayer('down',speed);
-            playersClient.at(-1).collision(ball1);
           }
           break;
         default: 
@@ -349,18 +355,11 @@ const main = (players) => {
       };
     
     clear();
+    ativePlayer.drawControls(context,canvas,playersClient);
     playersClient.forEach(element => {
-    catAvatar.x = element.x;
-    catAvatar.y = element.y;
-    catAvatar.drawCat();
+      element.drawCat(context);
     });
-    ballAvatar.drawBall();
-// };
+    ballsAvatar.drawBall(context);
 
-
-console.log('ddd')
-
-// });
-});
-
-    }
+     });
+  });

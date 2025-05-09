@@ -23,7 +23,11 @@ app.use(bodyParser.urlencoded({ extended: true }));
 //For FCC testing purposes and enables user to connect from outside the hosting platform
 app.use(cors({origin: '*'})); 
 
-app.use(helmet());
+app.use(helmet({
+  hidePoweredBy: {
+    setTo: 'PHP 7.4.3',
+  }
+}));
 app.use(helmet.noCache());
 // app.disable("x-powered-by");
 // Index page (static HTML)
@@ -33,7 +37,6 @@ app.use(helmet.noCache());
 app.route('/')
   .get(function (req, res) {
     res.sendFile(process.cwd() + '/views/index.html');
-    res.setHeader( 'X-Powered-By', 'PHP 7.4.3');
   })
 
 //For FCC testing purposes
@@ -45,34 +48,49 @@ app.use(function(req, res, next) {
     .type('text')
     .send('Not Found');
 });
-let players = [];
-let playerSync = [];
 
+let playerSync = [];
 
 io.on('connect', (socket) => {
   console.log('a user connected');
-  const sessionID = socket.id;
-   players.push(sessionID)
-   io.emit("hello", players); 
   socket.on('disconnect', () => {
-    players = players.filter(el => el !== sessionID)
-    playerSync = playerSync.filter(e => e !== sessionID)
     console.log(socket.id,'user disconnected');
-  });  
-  socket.on('player', ({x,y,score,id}) => {
-    console.log('message: ' + x,y,score ,id);
+    playerSync = playerSync.filter(e => e.id !== socket.id);
+    io.emit("player",playerSync);
+  });
+
+  socket.on('updatePosition', (arrayUpdatePostion) => {
+    playerSync = arrayUpdatePostion;
+    io.emit("player",arrayUpdatePostion);
+  });
+  socket.on('player', ({x,y,score,id,radius,color,ballX,ballY,rank}) => {
     playerSync.push({
       x: x,
       y: y,
       score: score,
-      id: id
+      id: id,
+      radius: radius,
+      color: color,
+      rank: rank,
+      ballX: ballX,
+      ballY: ballY
     });
-    io.emit("newPlayer", playerSync); 
+   if(rank === 0) {
+     let arrTemp = playerSync.map(e => {
+      return {
+        ...e,
+        rank: playerSync.length
+      }
+     });
+     io.emit("player",arrTemp);
+   } else {
+     io.emit("player",playerSync); 
+   }
   });
 }); 
 
-const portNum = process.env.PORT || 5000;
-
+const portNum = process.env.PORT || 3000;
+ 
 // Set up server and tests
 server.listen(portNum, () => {
   console.log(`Listening on port ${portNum}`);
