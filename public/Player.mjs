@@ -1,5 +1,5 @@
 class Player {
-    constructor({x, y, score, id,radius,color,rank}) {
+    constructor({x, y, score, id,radius,color,rank,local = false}) {
        this.x = x;
        this.y = y;
        this.score = score;
@@ -7,6 +7,7 @@ class Player {
        this.radius = radius;
        this.color = color;
        this.rank = rank;
+       this.local = local;
     }
 
     drawCat(context) {
@@ -25,7 +26,7 @@ class Player {
       context.moveTo(this.x - 22, this.y - 18);
       context.lineTo(this.x, this.y - 10);
       context.closePath();
-      context.strokeStyle = this.color;
+      context.strokeStyle = this.local ? this.color : 'pink';
       context.stroke();
   
       context.beginPath();
@@ -34,7 +35,7 @@ class Player {
       context.moveTo(this.x + 22, this.y - 18);
       context.lineTo(this.x, this.y - 10);
       context.closePath();
-      context.strokeStyle = this.color;
+      context.strokeStyle = this.local ? this.color : 'pink';
       context.stroke();
   
       
@@ -48,7 +49,7 @@ class Player {
       context.moveTo(this.x, this.y);
       context.lineTo(this.x, this.y + 2);
       context.closePath();
-      context.strokeStyle = this.color;
+      context.strokeStyle = this.local ? this.color : 'pink';
       context.stroke();
   
       context.beginPath();
@@ -97,6 +98,7 @@ class Player {
       this.score += 1;
       return true;
     }
+    return false;
   }
 
   calculateRank(arr) {

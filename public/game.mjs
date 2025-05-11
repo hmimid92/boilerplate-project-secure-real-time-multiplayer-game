@@ -1,15 +1,9 @@
 import Player from './Player.mjs';
 import Collectible from './Collectible.mjs';
-// import { json } from 'body-parser';
-// import { Server } from "https://cdn.socket.io/4.8.1/socket.io.esm.min.js";
-// import { createServer } from "http";
-// const socket = io("http://localhost:3000");
   
   const socket = io();
 
   let playersClient,ballsAvatar;
-
-  // console.log("regExp",/Rank\: 1\s?\/\s?2/)
   socket.on('connect', () => {
   const canvas = document.getElementById('game-window');
   const context = canvas.getContext('2d');
@@ -47,40 +41,27 @@ import Collectible from './Collectible.mjs';
   ballsAvatar = new Collectible({x: playersSync[0].ballX, y: playersSync[0].ballY, value:0, id:'b1',color: 'blue',radius: 10});
 
   const actvePlayerProp = playersClient.find((e) => e.id === socket.id);
-  const ativePlayer = new Player({
-    x:actvePlayerProp.x,
-    y:actvePlayerProp.y,
-    score:actvePlayerProp.score,
-    id: actvePlayerProp.id,
-    radius: actvePlayerProp.radius,
-    color: actvePlayerProp.color,
-    rank: actvePlayerProp.rank
-  });
+  const ativePlayer = new Player(actvePlayerProp);
 
   let arrTem;
   const draw = () => {
-    clear();
     arrTem = playersClient.map(element => {
       if(element.id === actvePlayerProp.id) {
-        // ativePlayer.drawControls(context,canvas,playersClient);
         return {
           ...element,
           x:ativePlayer.x,
           y:ativePlayer.y,
           score: ativePlayer.score,
           color: 'red',
-          rank: ativePlayer.rank
+          rank: ativePlayer.rank,
+          local: true
         }
       } else {
         element.color = 'pink';
-        // element.drawCat(context);
-        // element.drawControls(context,canvas,playersClient);
+        element.local = false;
         return element;
       }
       });
-      ativePlayer.drawCat(context);
-      ativePlayer.drawControls(context,canvas,arrTem);
-      ballsAvatar.drawBall(context);
       socket.emit('updatePosition',arrTem.map(e => {
         return {
         ...e,
@@ -357,7 +338,15 @@ import Collectible from './Collectible.mjs';
     clear();
     ativePlayer.drawControls(context,canvas,playersClient);
     playersClient.forEach(element => {
-      element.drawCat(context);
+      if(element.id === actvePlayerProp.id) {
+        element.color = 'red';
+        element.local = true;
+        element.drawCat(context);
+      } else {
+        element.color = 'pink';
+        element.local = false;
+        element.drawCat(context);
+      }
     });
     ballsAvatar.drawBall(context);
 
